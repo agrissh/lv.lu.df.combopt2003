@@ -22,4 +22,21 @@ public class Vehicle {
 
     private Location depot;
 
+    public Double getTotalDistance() {
+        Double totalDistance = 0.0;
+        Location prevLoc = this.getDepot();
+        for (Visit visit: this.getVisits()) {
+            totalDistance = totalDistance +
+                    prevLoc.distanceTo(visit.getLocation());
+            prevLoc = visit.getLocation();
+        }
+        totalDistance = totalDistance +
+                prevLoc.distanceTo(this.getDepot());
+        return totalDistance;
+    }
+
+    @Override
+    public String toString() {
+        return this.getRegNr();
+    }
 }

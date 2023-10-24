@@ -41,7 +41,7 @@ public class RoutingSolution {
             LOGGER.info(vehicle.getRegNr() + "("+ vehicle.getCapacity() +")");
             vehicle.getVisits().forEach(visit -> {
                 LOGGER.info("     " + visit.getName() + " "
-                        + visit.getVisitType() + " (" + visit.getVolume() + ")");
+                        + visit.getVisitType() + " (" + visit.getVolume() + ")  " + visit.getVehicle().getRegNr());
             });
         });
     }
