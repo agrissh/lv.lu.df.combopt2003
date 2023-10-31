@@ -41,7 +41,9 @@ public class RoutingSolution {
             LOGGER.info(vehicle.getRegNr() + "("+ vehicle.getCapacity() +")");
             vehicle.getVisits().forEach(visit -> {
                 LOGGER.info("     " + visit.getName() + " "
-                        + visit.getVisitType() + " (" + visit.getVolume() + ")  " + visit.getVehicle().getRegNr());
+                        + visit.getVisitType() + " (" + visit.getVolume() + ")  " + visit.getVehicle().getRegNr()
+                + " und=" + visit.getVolumeUndelivered()
+                        + " pick=" + visit.getVolumePicked());
             });
         });
     }
@@ -52,7 +54,7 @@ public class RoutingSolution {
 
         Vehicle v1 = new Vehicle();
         v1.setRegNr("AA0000");
-        v1.setCapacity(10);
+        v1.setCapacity(5);
 
         Location depotLoc = new Location(0.0, 0.0);
         v1.setDepot(depotLoc);

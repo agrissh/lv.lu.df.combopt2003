@@ -35,6 +35,27 @@ public class Vehicle {
         return totalDistance;
     }
 
+    public Boolean isGoodsConstraintBroken() {
+        Integer undelivered = 0, picked = 0;
+        for (Visit visit : this.getVisits()) {
+            switch (visit.getVisitType()) {
+                case DELIVERY -> {
+                    undelivered = undelivered - visit.getVolume();
+                }
+                case PICKUP -> {
+                    picked = picked + visit.getVolume();
+                }
+                case STOCK -> {
+                    undelivered = this.getCapacity();
+                    picked = 0;
+                }
+                default -> throw new IllegalStateException("Unexpected value: " + visit.getVisitType());
+            }
+            if (undelivered + picked > this.getCapacity() || undelivered < 0) return true;
+        }
+        return (picked > 0);
+    }
+
     @Override
     public String toString() {
         return this.getRegNr();

@@ -6,6 +6,7 @@ import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.solver.SolutionManager;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverFactory;
+import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 import lv.lu.df.combopt.domain.Location;
@@ -38,6 +39,7 @@ public class Main {
                         .withConstraintProviderClass(StreamCalculator.class)
                         .withTerminationConfig(new TerminationConfig()
                                 .withSecondsSpentLimit(10L))
+                        .withEnvironmentMode(EnvironmentMode.FULL_ASSERT)
         );
 
         Solver<RoutingSolution> solver = solverFactory.buildSolver();
