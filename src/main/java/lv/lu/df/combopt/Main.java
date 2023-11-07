@@ -38,7 +38,7 @@ public class Main {
                         //.withEasyScoreCalculatorClass(ScoreCalculator.class)
                         .withConstraintProviderClass(StreamCalculator.class)
                         .withTerminationConfig(new TerminationConfig()
-                                .withSecondsSpentLimit(10L))
+                                .withSecondsSpentLimit(30L))
                         .withEnvironmentMode(EnvironmentMode.FULL_ASSERT)
         );
 

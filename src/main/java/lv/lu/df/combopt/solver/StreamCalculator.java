@@ -4,6 +4,7 @@ import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
+import ai.timefold.solver.core.api.score.stream.Joiners;
 import lv.lu.df.combopt.domain.Vehicle;
 import lv.lu.df.combopt.domain.Visit;
 
@@ -22,21 +23,21 @@ public class StreamCalculator implements ConstraintProvider {
                 capacityOverflow(constraintFactory),
                 notEnoughGoods(constraintFactory),
                 pickedNotInStock(constraintFactory),
+                vehicleUsage(constraintFactory),
+                worktimeCost(constraintFactory),
+                visitOutsideTw(constraintFactory),
+                worktimeOverflow(constraintFactory),
+                vehicleOutsideTw(constraintFactory),
+                returnOutsideTw(constraintFactory),
         };
-    }
-
-    public Constraint everyVisit(ConstraintFactory constraintFactory) {
-        return constraintFactory
-                .forEach(Visit.class)
-                .penalize(HardSoftScore.ONE_SOFT, visit -> 1)
-                .asConstraint("everyVisit");
     }
 
     public Constraint totalDistance(ConstraintFactory constraintFactory) {
         return constraintFactory
                 .forEach(Vehicle.class)
                 .filter(vehicle -> vehicle.getTotalDistance() > 0)
-                .penalize(HardSoftScore.ONE_SOFT, vehicle -> (int) Math.round(vehicle.getTotalDistance() * 1000))
+                .penalize(HardSoftScore.ONE_SOFT, vehicle -> (int) Math.round(vehicle.getTotalDistance()
+                        * vehicle.getCostDistance() * 100))
                 .asConstraint("totalDistance");
     }
 
@@ -52,8 +53,10 @@ public class StreamCalculator implements ConstraintProvider {
         return constraintFactory
                 .forEach(Visit.class)
                 .filter(visit -> visit.getNext() != null)
-                .penalize(HardSoftScore.ONE_SOFT, visit ->
-                        (int) Math.round(visit.getLocation().distanceTo(visit.getNext().getLocation()) * 1000))
+                .join(Vehicle.class, Joiners.equal(Visit::getVehicle, v->v))
+                .penalize(HardSoftScore.ONE_SOFT, (visit, vehicle) ->
+                        (int) Math.round(visit.getLocation().distanceTo(visit.getNext().getLocation())
+                                * vehicle.getCostDistance() * 100))
                 .asConstraint("visit2visit");
     }
 
@@ -63,7 +66,7 @@ public class StreamCalculator implements ConstraintProvider {
                 .filter(visit -> visit.getPrev() == null)
                 .join(Vehicle.class, equal(Visit::getVehicle, v -> v))
                 .penalize(HardSoftScore.ONE_SOFT, (visit, vehicle) ->
-                        (int) Math.round(vehicle.getDepot().distanceTo(visit.getLocation()) * 1000))
+                        (int) Math.round(vehicle.getDepot().distanceTo(visit.getLocation()) * vehicle.getCostDistance() * 100))
                 .asConstraint("depot2visit");
     }
 
@@ -73,7 +76,7 @@ public class StreamCalculator implements ConstraintProvider {
                 .filter(visit -> visit.getNext() == null)
                 .join(Vehicle.class, equal(Visit::getVehicle, v -> v))
                 .penalize(HardSoftScore.ONE_SOFT, (visit, vehicle) ->
-                        (int) Math.round(visit.getLocation().distanceTo(vehicle.getDepot()) * 1000))
+                        (int) Math.round(visit.getLocation().distanceTo(vehicle.getDepot()) * vehicle.getCostDistance() * 100))
                 .asConstraint("visit2depot");
     }
 
@@ -83,7 +86,7 @@ public class StreamCalculator implements ConstraintProvider {
                 .join(Vehicle.class, equal(Visit::getVehicle, v->v))
                 .filter((visit, vehicle) ->
                         visit.getVolumeUndelivered() + visit.getVolumePicked() > vehicle.getCapacity())
-                .penalize(HardSoftScore.ONE_HARD)
+                .penalize(HardSoftScore.ONE_HARD, (vi,ve) -> 100)
                 .asConstraint("capacityOverflow");
     }
 
@@ -91,7 +94,7 @@ public class StreamCalculator implements ConstraintProvider {
         return constraintFactory
                 .forEach(Visit.class)
                 .filter(visit -> visit.getVolumeUndelivered() < 0)
-                .penalize(HardSoftScore.ONE_HARD)
+                .penalize(HardSoftScore.ONE_HARD, v -> 100)
                 .asConstraint("notEnoughGoods");
     }
 
@@ -99,7 +102,72 @@ public class StreamCalculator implements ConstraintProvider {
         return constraintFactory
                 .forEach(Visit.class)
                 .filter(visit -> visit.getNext() == null && visit.getVolumePicked() > 0)
-                .penalize(HardSoftScore.ONE_HARD)
+                .penalize(HardSoftScore.ONE_HARD, v -> 10)
                 .asConstraint("pickedNotInStock");
+    }
+
+    public Constraint vehicleUsage(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Vehicle.class)
+                .filter(vehicle -> !vehicle.getVisits().isEmpty())
+                .penalize(HardSoftScore.ONE_SOFT, vehicle -> (int) Math.round(vehicle.getCostUsage() * 100))
+                .asConstraint("vehicleUsage");
+    }
+
+    public Constraint worktimeCost(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Vehicle.class)
+                .filter(vehicle -> !vehicle.getVisits().isEmpty())
+                .join(Visit.class, Joiners.equal(v->v, Visit::getVehicle))
+                .filter((vehicle, last) -> last.getNext() == null)
+                .penalize(HardSoftScore.ONE_SOFT, (vehicle, last) ->
+                {
+                    return (int) Math.round((last.getDepartureTime() + last.getLocation().timeTo(vehicle.getDepot()) + vehicle.getSrvFTime() -
+                            vehicle.getTwStart()) / 3600.0 * vehicle.getCostWorkTime() * 100);
+                })
+                .asConstraint("worktimeCost");
+    }
+
+    public Constraint visitOutsideTw(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Visit.class)
+                .filter(visit -> visit.getDepartureTime() != null && visit.getDepartureTime() > visit.getTwFinish())
+                .penalize(HardSoftScore.ONE_HARD)
+                .asConstraint("visitOutsideTw");
+    }
+
+    public Constraint worktimeOverflow(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Vehicle.class)
+                .filter(vehicle -> !vehicle.getVisits().isEmpty())
+                .join(Visit.class, Joiners.equal(v->v, Visit::getVehicle))
+                .filter((vehicle, last) -> last.getNext() == null)
+                .filter(((vehicle, last) ->
+                        last.getDepartureTime() + last.getLocation().timeTo(vehicle.getDepot()) + vehicle.getSrvFTime() -
+                                vehicle.getTwStart() > vehicle.getMaxWorkTime()))
+                .penalize(HardSoftScore.ONE_HARD)
+                .asConstraint("worktimeOverflow");
+    }
+
+    public Constraint vehicleOutsideTw(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Visit.class)
+                .join(Vehicle.class, equal(Visit::getVehicle, v->v))
+                .filter((visit, vehicle) -> visit.getDepartureTime() > vehicle.getTwFinish())
+                .penalize(HardSoftScore.ONE_HARD)
+                .asConstraint("vehicleOutsideTw");
+    }
+
+    public Constraint returnOutsideTw(ConstraintFactory constraintFactory) {
+        return constraintFactory
+                .forEach(Vehicle.class)
+                .filter(vehicle -> !vehicle.getVisits().isEmpty())
+                .join(Visit.class, Joiners.equal(v->v, Visit::getVehicle))
+                .filter((vehicle, last) -> last.getNext() == null)
+                .filter(((vehicle, last) -> last.getDepartureTime() +
+                        last.getLocation().timeTo(vehicle.getDepot()) +
+                        vehicle.getSrvFTime() > vehicle.getTwFinish()))
+                .penalize(HardSoftScore.ONE_HARD)
+                .asConstraint("returnOutsideTw");
     }
 }

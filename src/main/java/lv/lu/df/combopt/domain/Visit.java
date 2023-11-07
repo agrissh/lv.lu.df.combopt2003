@@ -78,8 +78,22 @@ public class Visit {
     @PiggybackShadowVariable(shadowVariableName = "volumeUndelivered")
     private Integer volumePicked = 0;
 
+    private Integer srvTime;
+    private Integer twStart;
+    private Integer twFinish;
+
+    @PiggybackShadowVariable(shadowVariableName = "volumeUndelivered")
+    private Integer arrivalTime = null;
+
+    public Integer getDepartureTime() {
+        return this.getArrivalTime() != null ?
+                Math.max(this.getArrivalTime(), this.getTwStart()) + this.getSrvTime() :
+                null;
+    }
+
     @Override
     public String toString() {
-        return this.getName() + " und=" + this.getVolumeUndelivered();
+        return this.getName() + " arrT=" + RoutingSolution.formatTime(this.getArrivalTime())
+                + " depT=" + RoutingSolution.formatTime(this.getDepartureTime());
     }
 }

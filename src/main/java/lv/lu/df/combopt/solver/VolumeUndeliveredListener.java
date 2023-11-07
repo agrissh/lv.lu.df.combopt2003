@@ -21,9 +21,18 @@ public class VolumeUndeliveredListener implements VariableListener<RoutingSoluti
             scoreDirector.beforeVariableChanged(visit, "volumePicked");
             visit.setVolumePicked(0);
             scoreDirector.afterVariableChanged(visit, "volumePicked");
+            scoreDirector.beforeVariableChanged(visit, "arrivalTime");
+            visit.setArrivalTime(null);
+            scoreDirector.afterVariableChanged(visit, "arrivalTime");
+
         } else {
             Integer undelivered = visit.getPrev() != null ? visit.getPrev().getVolumeUndelivered() : 0;
             Integer picked = visit.getPrev() != null ? visit.getPrev().getVolumePicked() : 0;
+            Integer arrival = visit.getPrev() != null && visit.getPrev().getArrivalTime() != null ?
+                    visit.getPrev().getDepartureTime() + visit.getPrev().getLocation().timeTo(visit.getLocation()) :
+                    visit.getVehicle().getTwStart() + visit.getVehicle().getSrvSTime() +
+                            visit.getVehicle().getDepot().timeTo(visit.getLocation());
+
 
             Visit shadowVisit = visit;
             while (shadowVisit != null) {
@@ -40,7 +49,17 @@ public class VolumeUndeliveredListener implements VariableListener<RoutingSoluti
                 scoreDirector.beforeVariableChanged(shadowVisit, "volumePicked");
                 shadowVisit.setVolumePicked(picked);
                 scoreDirector.afterVariableChanged(shadowVisit, "volumePicked");
+                scoreDirector.beforeVariableChanged(shadowVisit, "arrivalTime");
+                shadowVisit.setArrivalTime(arrival);
+                scoreDirector.afterVariableChanged(shadowVisit, "arrivalTime");
+
                 shadowVisit = shadowVisit.getNext();
+
+                if (shadowVisit != null) {
+                    arrival = shadowVisit.getPrev().getDepartureTime() +
+                            shadowVisit.getPrev().getLocation().timeTo(shadowVisit.getLocation());
+                }
+
             }
         }
     }

@@ -22,6 +22,18 @@ public class Vehicle {
 
     private Location depot;
 
+    private Integer twStart;
+    private Integer twFinish;
+
+    private Integer srvSTime;
+    private Integer srvFTime;
+
+    private Integer maxWorkTime;
+
+    private Double costWorkTime;
+    private Double costDistance;
+    private Double costUsage;
+
     public Double getTotalDistance() {
         Double totalDistance = 0.0;
         Location prevLoc = this.getDepot();
