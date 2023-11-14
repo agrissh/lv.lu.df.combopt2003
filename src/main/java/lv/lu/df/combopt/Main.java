@@ -31,6 +31,9 @@ public class Main {
         RoutingSolution problem = RoutingSolution.generateData();
         problem.print();
 
+        SolverFactory<RoutingSolution> solverFactoryFromXML = SolverFactory
+                .createFromXmlResource("SolverConfig.xml");
+
         SolverFactory<RoutingSolution> solverFactory = SolverFactory.create(
                 new SolverConfig()
                         .withSolutionClass(RoutingSolution.class)
@@ -42,7 +45,7 @@ public class Main {
                         .withEnvironmentMode(EnvironmentMode.FULL_ASSERT)
         );
 
-        Solver<RoutingSolution> solver = solverFactory.buildSolver();
+        Solver<RoutingSolution> solver = solverFactoryFromXML.buildSolver();
         RoutingSolution solution = solver.solve(problem);
 
         SolutionManager<RoutingSolution, HardSoftScore> solutionManager = SolutionManager.create(solverFactory);
