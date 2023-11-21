@@ -2,6 +2,10 @@ package lv.lu.df.combopt.domain;
 
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.*;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,6 +13,9 @@ import lv.lu.df.combopt.solver.VolumeUndeliveredListener;
 
 @PlanningEntity
 @Getter @Setter @NoArgsConstructor
+@JsonIdentityInfo(scope = Visit.class,
+        property = "name",
+        generator = ObjectIdGenerators.PropertyGenerator.class)
 public class Visit {
 
     public enum VisitType {DELIVERY, PICKUP, STOCK}
@@ -20,14 +27,18 @@ public class Visit {
     private Location location;
 
     @InverseRelationShadowVariable(sourceVariableName = "visits")
+    @JsonIdentityReference
     private Vehicle vehicle;
 
     @NextElementShadowVariable(sourceVariableName = "visits")
+    @JsonIdentityReference
     private Visit next;
 
     @PreviousElementShadowVariable(sourceVariableName = "visits")
+    @JsonIdentityReference
     private Visit prev;
 
+    @JsonIgnore
     public Integer getUndelivered() {
         Integer undelivered = 0;
         if (this.getPrev() != null) {
@@ -48,6 +59,7 @@ public class Visit {
         }
         return undelivered;
     }
+    @JsonIgnore
     public Integer getPicked() {
         Integer picked = 0;
         if (this.getPrev() != null) {
@@ -85,6 +97,7 @@ public class Visit {
     @PiggybackShadowVariable(shadowVariableName = "volumeUndelivered")
     private Integer arrivalTime = null;
 
+    @JsonIgnore
     public Integer getDepartureTime() {
         return this.getArrivalTime() != null ?
                 Math.max(this.getArrivalTime(), this.getTwStart()) + this.getSrvTime() :

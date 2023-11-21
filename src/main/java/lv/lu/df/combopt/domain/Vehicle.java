@@ -3,6 +3,10 @@ package lv.lu.df.combopt.domain;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.PlanningListVariable;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,12 +16,16 @@ import java.util.List;
 
 @PlanningEntity
 @Getter @Setter @NoArgsConstructor
+@JsonIdentityInfo(scope = Vehicle.class,
+        property = "regNr",
+        generator = ObjectIdGenerators.PropertyGenerator.class)
 public class Vehicle {
 
     private String regNr;
     private Integer capacity;
 
     @PlanningListVariable
+    @JsonIdentityReference
     private List<Visit> visits = new ArrayList<>();
 
     private Location depot;
@@ -34,6 +42,7 @@ public class Vehicle {
     private Double costDistance;
     private Double costUsage;
 
+    @JsonIgnore
     public Double getTotalDistance() {
         Double totalDistance = 0.0;
         Location prevLoc = this.getDepot();
@@ -47,6 +56,7 @@ public class Vehicle {
         return totalDistance;
     }
 
+    @JsonIgnore
     public Boolean isGoodsConstraintBroken() {
         Integer undelivered = 0, picked = 0;
         for (Visit visit : this.getVisits()) {

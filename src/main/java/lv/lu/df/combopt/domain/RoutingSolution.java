@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @PlanningSolution
 @Getter @Setter @NoArgsConstructor
@@ -139,6 +140,79 @@ public class RoutingSolution {
         problem.getVehicleList().addAll(List.of(v1, v2));
         problem.getLocationList().addAll(List.of(depotLoc, a1Loc, a2Loc, a3Loc, stockLoc));
         problem.getVisitList().addAll(List.of(a1, a2, a3, a4, a5));
+
+        return problem;
+    }
+
+    private static int problemId = 0;
+    private static Integer getProblemId() { problemId++; return problemId;}
+
+
+    public static RoutingSolution generateData(int scale) { // scale number of clients
+        RoutingSolution problem = new RoutingSolution();
+        problem.setSolutionId(RoutingSolution.getProblemId().toString());
+
+        Random random = new Random();
+
+        // vehicles: scale / 20 + 1
+        for (int i = 1; i <= scale / 20 + 1; i++) {
+            Vehicle v1 = new Vehicle();
+            v1.setRegNr("AA" + i);
+            v1.setCapacity(499 + random.nextInt(100) - 50);
+            v1.setTwStart(TIME8AM);
+            v1.setTwFinish(TIME8AM + 8 * HOUR);
+            v1.setSrvSTime(900);
+            v1.setSrvFTime(900);
+            v1.setMaxWorkTime(HOUR * 8);
+            Location depotLoc = new Location(random.nextDouble(100), random.nextDouble(100));
+            v1.setDepot(depotLoc);
+            v1.setCostDistance(0.1);
+            v1.setCostWorkTime(7.0);
+            v1.setCostUsage(30.0);
+
+            problem.getVehicleList().add(v1);
+            problem.getLocationList().add(depotLoc);
+        }
+
+        for (int i = 1; i <= scale; i++) {
+            Visit a1 = new Visit();
+            a1.setName("Client" + i);
+            Location a1Loc = new Location(random.nextDouble(100), random.nextDouble(100));
+            a1.setLocation(a1Loc);
+            a1.setSrvTime(600);
+            a1.setTwStart(TIME8AM + random.nextInt(HOUR * 2));
+            a1.setTwFinish(TIME8AM + 8 * HOUR - random.nextInt(HOUR * 2));
+
+            problem.getVisitList().add(a1);
+            problem.getLocationList().add(a1Loc);
+
+            if (i <= (0.1 * scale)) {
+                // delivery
+                a1.setVolume(100);
+                a1.setVisitType(Visit.VisitType.DELIVERY);
+            } else {
+                // pickup
+                a1.setVolume(1);
+                a1.setVisitType(Visit.VisitType.PICKUP);
+            }
+        }
+
+        for (int i = 1; i <= scale / 50 + 1; i++) {
+            Location stockLoc = new Location(random.nextDouble(100), random.nextDouble(100));
+            problem.getLocationList().add(stockLoc);
+            for (int j = 1; j <= 10; j++) {
+                Visit a5 = new Visit();
+                a5.setLocation(stockLoc);
+                a5.setName("Stock" + i + ":" + j);
+                a5.setVolume(0);
+                a5.setVisitType(Visit.VisitType.STOCK);
+                a5.setLocation(stockLoc);
+                a5.setSrvTime(900);
+                a5.setTwStart(TIME8AM - 2 * HOUR);
+                a5.setTwFinish(TIME8AM + 16 * HOUR);
+                problem.getVisitList().add(a5);
+            }
+        }
 
         return problem;
     }
