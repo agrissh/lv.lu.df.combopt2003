@@ -27,15 +27,15 @@ public class Visit {
     private Location location;
 
     @InverseRelationShadowVariable(sourceVariableName = "visits")
-    @JsonIdentityReference
+    @JsonIdentityReference(alwaysAsId = true)
     private Vehicle vehicle;
 
     @NextElementShadowVariable(sourceVariableName = "visits")
-    @JsonIdentityReference
+    @JsonIdentityReference(alwaysAsId = false)
     private Visit next;
 
     @PreviousElementShadowVariable(sourceVariableName = "visits")
-    @JsonIdentityReference
+    @JsonIdentityReference(alwaysAsId = true)
     private Visit prev;
 
     @JsonIgnore

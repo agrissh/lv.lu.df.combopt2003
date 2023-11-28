@@ -25,7 +25,6 @@ public class Vehicle {
     private Integer capacity;
 
     @PlanningListVariable
-    @JsonIdentityReference
     private List<Visit> visits = new ArrayList<>();
 
     private Location depot;
