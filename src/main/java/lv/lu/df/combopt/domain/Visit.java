@@ -31,7 +31,7 @@ public class Visit {
     private Vehicle vehicle;
 
     @NextElementShadowVariable(sourceVariableName = "visits")
-    @JsonIdentityReference(alwaysAsId = false)
+    @JsonIdentityReference(alwaysAsId = true)
     private Visit next;
 
     @PreviousElementShadowVariable(sourceVariableName = "visits")

@@ -5,6 +5,8 @@ import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import ai.timefold.solver.core.api.score.constraint.Indictment;
 import ai.timefold.solver.core.api.solver.SolutionManager;
 import ai.timefold.solver.core.api.solver.SolverManager;
+import jakarta.annotation.PostConstruct;
+import lv.lu.df.combopt.domain.Router;
 import lv.lu.df.combopt.domain.RoutingSolution;
 import lv.lu.df.combopt.solver.SimpleIndictmentObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +27,11 @@ public class RoutingController {
 
     private Map<String, RoutingSolution> solutionMap = new HashMap<>();
 
+    private Router ghRouter = Router.getDefaultRouterInstance();
+
     @PostMapping("/solve")
     public void solve(@RequestBody RoutingSolution problem) {
+        ghRouter.setDistanceTimeMap(problem.getLocationList());
         solverManager.solveAndListen(problem.getSolutionId(), id -> problem,
                 solution -> solutionMap.put(solution.getSolutionId(), solution));
     }
@@ -58,6 +63,13 @@ public class RoutingController {
                 }).collect(Collectors.toList());
     }
 
-
+    @PostConstruct
+    public void init() {
+        RoutingSolution problem50 = RoutingSolution.generateData(50);
+        ghRouter.setDistanceTimeMap(problem50.getLocationList());
+        //solutionIOJSON.write(problem50, new File("data/exampleRiga50.json"));
+        solverManager.solveAndListen(problem50.getSolutionId(), id -> problem50, solution -> {
+            solutionMap.put(solution.getSolutionId(), solution);});
+    }
 
 }

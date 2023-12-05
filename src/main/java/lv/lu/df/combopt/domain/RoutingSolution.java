@@ -26,6 +26,10 @@ public class RoutingSolution {
 
     private static final Integer HOUR = 3600;
     private static final Integer TIME8AM = 8 * HOUR;
+    private static final Double UPPER_LEFT_COORD_LAT = 56.9947;
+    private static final Double UPPER_LEFT_COORD_LON = 24.0309;
+    private static final Double LOWER_RIGHT_COORD_LAT = 56.8884;
+    private static final Double LOWER_RIGHT_COORD_LON = 24.2520;
 
     private String solutionId;
     @PlanningScore
@@ -36,7 +40,7 @@ public class RoutingSolution {
 
     @ProblemFactCollectionProperty
     @ValueRangeProvider
-    @JsonIdentityReference(alwaysAsId = true)
+    @JsonIdentityReference(alwaysAsId = false)
     private List<Visit> visitList = new ArrayList<>();
 
     @ProblemFactCollectionProperty
@@ -48,10 +52,10 @@ public class RoutingSolution {
             vehicle.getVisits().forEach(visit -> {
                 LOGGER.info("     " + visit.getName() + " "
                         + visit.getVisitType() + " (" + visit.getVolume() + ")  " + visit.getVehicle().getRegNr()
-                + " und=" + visit.getVolumeUndelivered()
+                        + " und=" + visit.getVolumeUndelivered()
                         + " pick=" + visit.getVolumePicked()
-                                + " arrT=" + formatTime(visit.getArrivalTime())
-                                + " depT=" + formatTime(visit.getDepartureTime())
+                        + " arrT=" + formatTime(visit.getArrivalTime())
+                        + " depT=" + formatTime(visit.getDepartureTime())
                 );
             });
         });
@@ -166,7 +170,10 @@ public class RoutingSolution {
             v1.setSrvSTime(900);
             v1.setSrvFTime(900);
             v1.setMaxWorkTime(HOUR * 8);
-            Location depotLoc = new Location(random.nextDouble(100), random.nextDouble(100));
+            //Location depotLoc = new Location(random.nextDouble(100), random.nextDouble(100));
+            Location depotLoc = new Location(LOWER_RIGHT_COORD_LAT + (UPPER_LEFT_COORD_LAT - LOWER_RIGHT_COORD_LAT) * random.nextDouble(),
+                    UPPER_LEFT_COORD_LON + (LOWER_RIGHT_COORD_LON - UPPER_LEFT_COORD_LON) * random.nextDouble());
+
             v1.setDepot(depotLoc);
             v1.setCostDistance(0.1);
             v1.setCostWorkTime(7.0);
@@ -179,7 +186,8 @@ public class RoutingSolution {
         for (int i = 1; i <= scale; i++) {
             Visit a1 = new Visit();
             a1.setName("Client" + i);
-            Location a1Loc = new Location(random.nextDouble(100), random.nextDouble(100));
+            Location a1Loc = new Location(LOWER_RIGHT_COORD_LAT + (UPPER_LEFT_COORD_LAT - LOWER_RIGHT_COORD_LAT) * random.nextDouble(),
+                    UPPER_LEFT_COORD_LON + (LOWER_RIGHT_COORD_LON - UPPER_LEFT_COORD_LON) * random.nextDouble());
             a1.setLocation(a1Loc);
             a1.setSrvTime(600);
             a1.setTwStart(TIME8AM + random.nextInt(HOUR * 2));
@@ -200,7 +208,8 @@ public class RoutingSolution {
         }
 
         for (int i = 1; i <= scale / 50 + 1; i++) {
-            Location stockLoc = new Location(random.nextDouble(100), random.nextDouble(100));
+            Location stockLoc = new Location(LOWER_RIGHT_COORD_LAT + (UPPER_LEFT_COORD_LAT - LOWER_RIGHT_COORD_LAT) * random.nextDouble(),
+                    UPPER_LEFT_COORD_LON + (LOWER_RIGHT_COORD_LON - UPPER_LEFT_COORD_LON) * random.nextDouble());
             problem.getLocationList().add(stockLoc);
             for (int j = 1; j <= 10; j++) {
                 Visit a5 = new Visit();

@@ -114,6 +114,11 @@
             <version>1.6.0</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>com.graphhopper</groupId>
+            <artifactId>graphhopper-core</artifactId>
+            <version>7.0</version>
+        </dependency>
     </dependencies>
 
     <build>
