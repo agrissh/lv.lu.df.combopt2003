@@ -119,6 +119,11 @@
             <artifactId>graphhopper-core</artifactId>
             <version>7.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.ortools</groupId>
+            <artifactId>ortools-java</artifactId>
+            <version>9.8.3296</version>
+        </dependency>
     </dependencies>
 
     <build>
